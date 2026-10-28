@@ -40,6 +40,50 @@ cp -R "$SKILL_SOURCE" .claude/skills/meeting-summary
 
 요약 작성에는 별도 실행 코드나 패키지가 필요하지 않다. Notion 저장에는 현재 환경에서 사용할 수 있는 Notion 연결 또는 CLI와 대상 페이지의 수정 권한이 필요하다. 이 스킬은 별도 도구를 설치하거나 인증 정보를 만들지 않는다.
 
+### 설치 확인
+
+아래 명령도 대상 프로젝트 루트에서 실행한다. 한 에이전트에만 설치했다면 해당 경로만 확인한다. 새 터미널에서는 설치할 때 사용한 `SKILL_SOURCE`를 다시 지정한다.
+
+```sh
+ls -ld .agents/skills/meeting-summary .claude/skills/meeting-summary
+diff -r "$SKILL_SOURCE" .agents/skills/meeting-summary
+diff -r "$SKILL_SOURCE" .claude/skills/meeting-summary
+```
+
+- `ls -ld` 결과의 첫 글자가 `d`이면 실제 디렉터리다. `l`이거나 `->`가 표시되면 심볼릭 링크다.
+- 각 설치 폴더에 `SKILL.md`, `LICENSE`, `references/summary-context.md`, `references/notion-storage.md`가 있어야 한다. `diff`가 아무 내용도 출력하지 않고 종료 코드 0으로 끝나면 배포 원본과 일치한다.
+- 에이전트에서 `meeting-summary`를 명시해 호출하고 설치 경로의 스킬을 읽는지 확인한다. 목록 갱신이 필요한 도구는 해당 도구의 재로드 또는 새 세션 안내를 따른다.
+- 배포 원본 폴더를 이미 삭제했다면 설치 폴더의 파일과 에이전트의 호출 여부로 확인한다. 원본과 비교하려면 저장소를 다시 내려받아 `SKILL_SOURCE`를 지정한다.
+
+### 갱신
+
+1. 배포 원본 저장소의 로컬 수정 사항을 먼저 보존한다. 원본 작업 폴더를 삭제했다면 저장소를 다시 내려받는다. 로컬 수정이 없는 경우 다음 명령으로 최신 변경을 받는다.
+
+   ```sh
+   git -C "/path/to/meeting-summary-skill" pull --ff-only
+   ```
+
+2. 최신 원본의 `skills/meeting-summary/SKILL.md`와 참고 파일이 있는지 확인하고 `SKILL_SOURCE`를 지정한다. 설치본을 직접 수정했다면 그 내용도 별도로 보관한다.
+3. 갱신할 설치 폴더만 휴지통으로 옮긴다. `trash`가 있는 환경에서 두 설치본을 모두 갱신하는 명령은 다음과 같다. `trash`가 없으면 파일 관리자의 휴지통 기능을 사용한다.
+
+   ```sh
+   trash .agents/skills/meeting-summary .claude/skills/meeting-summary
+   ```
+
+4. 기존 설치 폴더가 없어진 것을 확인한 뒤 위의 설치 명령을 다시 실행하고, 설치 확인 절차로 원본과 비교한다. 기존 폴더에 그대로 `cp -R`하면 스킬 폴더가 중첩되거나 이전 파일이 남을 수 있으므로 새 폴더로 복사한다.
+
+### 삭제
+
+사용하지 않을 에이전트의 `meeting-summary` 설치 폴더만 휴지통으로 옮긴다. 두 설치본을 모두 삭제하는 경우:
+
+```sh
+trash .agents/skills/meeting-summary .claude/skills/meeting-summary
+```
+
+`trash`가 없으면 파일 관리자의 휴지통 기능을 사용한다. 상위 `skills` 폴더나 다른 스킬은 삭제하지 않는다. 다른 위치에 설치했다면 실제 설치 경로를 대상으로 한다.
+
+두 설치 경로가 더 이상 존재하지 않는지 확인한다. 에이전트에 이전 스킬이 계속 표시되면 해당 도구의 목록 재로드 또는 새 세션 안내를 따른다. 설치본 삭제와 배포 원본 저장소의 삭제는 별개다.
+
 ## 사용 예시
 
 ```text
